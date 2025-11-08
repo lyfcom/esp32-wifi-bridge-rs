@@ -24,8 +24,9 @@ const UPSTREAM_AUTH_METHOD: UpstreamAuthType = UpstreamAuthType::Open;  // 认�
 const CUSTOM_STA_MAC: Option<[u8; 6]> = Some([0xEC, 0x7C, 0xB6, 0x1C, 0x28, 0xF6]);
 
 // 下游 WiFi 配置（ESP32 创建的热点）
-const DOWNSTREAM_SSID: &str = "XHZX-临时";  // ESP32 热点名称
+const DOWNSTREAM_SSID: &str = "helloworld";  // ESP32 热点名称
 const DOWNSTREAM_PASSWORD: &str = "12345678";  // ESP32 热点密码（至少8位）
+const DOWNSTREAM_SSID_HIDDEN: bool = true;  // 是否隐藏 SSID（true=隐藏，false=广播）
 
 // 下游网络配置
 const AP_IP: Ipv4Addr = Ipv4Addr::new(192, 168, 4, 1);
@@ -146,6 +147,7 @@ fn wifi_relay(
     // 第四步：配置 WiFi（同时配置 STA 和 AP 模式）
     info!("配置 WiFi（APSTA 模式）...");
     info!("上游认证方式: {}", UPSTREAM_AUTH_METHOD.description());
+    info!("下游热点 SSID: {}{}", DOWNSTREAM_SSID, if DOWNSTREAM_SSID_HIDDEN { " (隐藏)" } else { " (广播)" });
 
     let auth_method = UPSTREAM_AUTH_METHOD.to_auth_method();
 
@@ -160,6 +162,7 @@ fn wifi_relay(
         // AP 配置：创建下游热点
         AccessPointConfiguration {
             ssid: DOWNSTREAM_SSID.try_into().unwrap(),
+            ssid_hidden: DOWNSTREAM_SSID_HIDDEN,
             password: DOWNSTREAM_PASSWORD.try_into().unwrap(),
             auth_method: AuthMethod::WPA2Personal,
             max_connections: 4,
@@ -189,7 +192,7 @@ fn wifi_relay(
 
     info!("----------------------------------------");
     info!("下游热点信息:");
-    info!("  SSID: {}", DOWNSTREAM_SSID);
+    info!("  SSID: {}{}", DOWNSTREAM_SSID, if DOWNSTREAM_SSID_HIDDEN { " (隐藏)" } else { "" });
     info!("  密码: {}", DOWNSTREAM_PASSWORD);
     info!("  IP: {}", AP_IP);
     info!("  最大连接数: 4");

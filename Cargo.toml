@@ -16,8 +16,8 @@ lto = "fat"                # 完整的链接时优化，提升运行效率
 codegen-units = 1          # 单个代码生成单元，最佳优化但编译慢
 overflow-checks = false    # 禁用溢出检查以提升性能
 debug = false              # 禁用调试信息减小大小
-strip = true               # 剥离符号减小二进制大小
-panic = "abort"            # panic 时直接中止，不展开栈（减小大小）
+strip = false              # 保留符号（ESP32 需要应用描述符）
+panic = "unwind"           # 使用展开模式（ESP-IDF 兼容性更好）
 
 [profile.dev]
 debug = true               # Symbols are nice, and they don't increase the size on Flash
