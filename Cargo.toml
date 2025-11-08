@@ -1,0 +1,63 @@
+[package]
+name = "rusttest3"
+version = "0.1.0"
+authors = ["lyfcom <linyufeng23@126.com>"]
+edition = "2021"
+resolver = "2"
+rust-version = "1.77"
+
+[[bin]]
+name = "rusttest3"
+harness = false # do not use the built-in cargo test harness -> resolve rust-analyzer errors
+
+[profile.release]
+opt-level = 3              # 最大性能优化（而非大小优化）
+lto = "fat"                # 完整的链接时优化，提升运行效率
+codegen-units = 1          # 单个代码生成单元，最佳优化但编译慢
+overflow-checks = false    # 禁用溢出检查以提升性能
+debug = false              # 禁用调试信息减小大小
+strip = true               # 剥离符号减小二进制大小
+panic = "abort"            # panic 时直接中止，不展开栈（减小大小）
+
+[profile.dev]
+debug = true               # Symbols are nice, and they don't increase the size on Flash
+opt-level = "z"            # 开发模式下优化大小以加快烧录速度
+overflow-checks = true     # 开发时保留检查以便调试
+
+# 可选：如果需要在大小和性能间平衡，可以使用这个 profile
+# 使用方式: cargo build --profile size-opt
+[profile.size-opt]
+inherits = "release"
+opt-level = "s"            # 优化大小但保持合理性能
+lto = "thin"               # 轻量级 LTO，编译快但优化稍弱
+codegen-units = 16         # 更多单元，编译更快
+
+[features]
+default = []
+
+experimental = ["esp-idf-svc/experimental"]
+
+[dependencies]
+log = "0.4"
+esp-idf-svc = { version = "0.51", features = ["alloc"] }
+anyhow = "1.0"
+
+# --- Optional Embassy Integration ---
+# esp-idf-svc = { version = "0.51", features = ["critical-section", "embassy-time-driver", "embassy-sync"] }
+
+# If you enable embassy-time-driver, you MUST also add one of:
+
+# a) Standalone Embassy libs ( embassy-time, embassy-sync etc.) with a foreign async runtime:
+# embassy-time = { version = "0.4.0", features = ["generic-queue-8"] } # NOTE: any generic-queue variant will work
+
+# b) With embassy-executor:
+# embassy-executor = { version = "0.7", features = ["executor-thread", "arch-std"] }
+
+# NOTE: if you use embassy-time with embassy-executor you don't need the generic-queue-8 feature
+
+# --- Temporary workaround for embassy-executor < 0.8 ---
+# esp-idf-svc = { version = "0.51", features = ["embassy-time-driver", "embassy-sync"] }
+# critical-section = { version = "1.1", features = ["std"], default-features = false }
+
+[build-dependencies]
+embuild = "0.33"
